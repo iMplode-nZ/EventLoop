@@ -23,9 +23,13 @@ trait EventPoller {
      */
     protected def closing(): Boolean
     /**
-     * Called on close of the event poller.
+     * Method to close it from outside.
      */
-    protected def close(): Unit
+    def close(): Unit
+    /**
+     * Method to close the event poller that is called by the event loop.
+     */
+    protected def executeClose(): Unit
 }
 /**
  * Object to access protected methods.
@@ -57,5 +61,5 @@ object EventPoller {
      * @param x The event poller to call `close` on.
      * @return The exact value returned by `x.close`()`
      */
-    def close(x: EventPoller): Unit = x.close()
+    def executeClose(x: EventPoller): Unit = x.executeClose()
 }

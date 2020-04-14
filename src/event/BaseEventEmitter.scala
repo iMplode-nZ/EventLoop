@@ -131,12 +131,9 @@ trait BaseEventEmitter[S <: EventType, T <: BaseEventEmitter[S, T, R], R[_ <: S]
     }
     protected def poll(): Unit = ()
     protected def closing(): Boolean = state == State.Closing
-    protected def close(): Unit = state match {
+    def close(): Unit = state match {
         case State.Open => state = State.Closing
-        case State.Closing => {
-            executeClose()
-            state = State.Closed
-        }
+        case State.Closing => ()
         case State.Closed => executeAlreadyClosed()
     }
     protected def forceClose(): Unit = state match {
