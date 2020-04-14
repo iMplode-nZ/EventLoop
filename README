@@ -1,0 +1,13 @@
+To Run:
+
+    java -jar read.jar [filename]
+
+For example,
+
+    java -jar read.jar build.sbt
+
+The reading has a delay between every 16 characters.
+
+The code is in the src/ directory.
+
+Example.scala is the code that is run when using read.jar.
