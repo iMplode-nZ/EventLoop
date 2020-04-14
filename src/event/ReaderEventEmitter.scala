@@ -25,7 +25,7 @@ class ReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int 
             if(read == -1) lastByteEof = true
             else buffer += read.asInstanceOf[Char]
         }
-        if(buffer.length > chunkSize) {
+        if(buffer.length >= chunkSize) {
             val first = buffer.slice(0, chunkSize)
             emit[DataEventEmitter.DataEvent](DataEventEmitter.data, first.toArray)
             buffer = buffer.slice(chunkSize, buffer.length)

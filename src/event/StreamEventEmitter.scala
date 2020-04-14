@@ -26,7 +26,7 @@ class StreamEventEmitter(stream: InputStream, chunkSize: Int = 4096, defaultMax:
             if(read == -1) lastByteEof = true
             else buffer += read.asInstanceOf[Byte]
         }
-        if(buffer.length > chunkSize) {
+        if(buffer.length >= chunkSize) {
             val first = buffer.slice(0, chunkSize)
             emit[DataEventEmitter.DataEvent](DataEventEmitter.data, first.toArray)
             buffer = buffer.slice(chunkSize, buffer.length)
