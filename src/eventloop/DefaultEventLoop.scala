@@ -46,7 +46,7 @@ class DefaultEventLoop(max: Long) extends EventLoop[TimeoutFunction, IntervalFun
             var break = false
             var current = 0
             while(current < max && !break) {
-                if(!remaining()) return
+                if(!remaining()) break = true
                 while(poll.isEmpty && !break) {
                     if(immediates.nonEmpty) break = true
                     if(pollers.isEmpty) break = true

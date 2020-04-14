@@ -1,30 +1,29 @@
 /**
- * Implementation of [[DataEventEmitter]] that is specialized for input streams.
+ * Implementation of [[DataEventEmitter]] that is specialized for readers.
  *
  * @inheritdoc
  */
 
 package event
 
-import java.io.InputStream
+import java.io.Reader
 
 import scala.collection.mutable.Buffer
 
-class StreamEventEmitter(stream: InputStream, chunkSize: Int = 4096, defaultMax: Int = 10)
-        extends DataEventEmitter[Array[Byte]](defaultMax) {
-    private var buffer = Buffer[Byte]()
+class ReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10)
+        extends DataEventEmitter[Array[Char]](defaultMax) {
+    private var buffer = Buffer[Char]()
     private var lastByteEof = false
     protected override def executeClose() = {
-        stream.close()
+        reader.close()
         super.executeClose()
     }
 
     protected override def poll(): Unit = {
-        val avil = stream.available()
-        for(x <- 0 to avil) {
-            val read = stream.read()
+        while(reader.ready()) {
+            val read = reader.read()
             if(read == -1) lastByteEof = true
-            else buffer += read.asInstanceOf[Byte]
+            else buffer += read.asInstanceOf[Char]
         }
         if(buffer.length > chunkSize) {
             val first = buffer.slice(0, chunkSize)

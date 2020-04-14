@@ -20,32 +20,28 @@ trait BaseEventEmitter[S <: EventType, T <: BaseEventEmitter[S, T, R], R[_ <: S]
 
     private val current = new ArrayBuffer[eventloop.Event]()
     private val listeners = new TypedMap[S, [X <: S] =>> ArrayBuffer[EventFunction[R[X]]]]()
-    private def append[K <: S](name: K, function: EventFunction[R[K]]): Unit = {
-        listeners.get(name) match {
-            case Some(x) => {
-                if(x.length > maxListeners) overMax()
-                x += function
-            }
-            case None => {
-                if(maxListeners == 0) overMax()
-                val addon = new ArrayBuffer[EventFunction[R[K]]]()
-                listeners += (name -> addon)
-                addon += function
-            }
+    private def append[K <: S](name: K, function: EventFunction[R[K]]): Unit = listeners.get(name) match {
+        case Some(x) => {
+            if(x.length > maxListeners) overMax()
+            x += function
+        }
+        case None => {
+            if(maxListeners == 0) overMax()
+            val addon = new ArrayBuffer[EventFunction[R[K]]]()
+            listeners += (name -> addon)
+            addon += function
         }
     }
-    private def prepend[K <: S](name: K, function: EventFunction[R[K]]): Unit = {
-        listeners.get(name) match {
-            case Some(x) => {
-                if(x.length > maxListeners) overMax()
-                x.prepend(function)
-            }
-            case None => {
-                if(maxListeners == 0) overMax()
-                val addon = new ArrayBuffer[EventFunction[R[K]]]()
-                listeners += (name -> addon)
-                addon += function
-            }
+    private def prepend[K <: S](name: K, function: EventFunction[R[K]]): Unit = listeners.get(name) match {
+        case Some(x) => {
+            if(x.length > maxListeners) overMax()
+            x.prepend(function)
+        }
+        case None => {
+            if(maxListeners == 0) overMax()
+            val addon = new ArrayBuffer[EventFunction[R[K]]]()
+            listeners += (name -> addon)
+            addon += function
         }
     }
     def on[K <: S](name: K, listener: EventListener[R[K]]): T = {
@@ -79,11 +75,9 @@ trait BaseEventEmitter[S <: EventType, T <: BaseEventEmitter[S, T, R], R[_ <: S]
         })
         this
     }
-    def raw[K <: S](name: K): TraversableOnce[EventFunction[R[K]]] = {
-        listeners.get(name) match {
-            case Some(x) => x.toArray[EventFunction[R[K]]]
-            case None => Array[EventFunction[R[K]]]()
-        }
+    def raw[K <: S](name: K): TraversableOnce[EventFunction[R[K]]] = listeners.get(name) match {
+        case Some(x) => x.toArray[EventFunction[R[K]]]
+        case None => Array[EventFunction[R[K]]]()
     }
     def count[K <: S](name: K): Int = {
         listeners.get(name) match {
@@ -114,27 +108,22 @@ trait BaseEventEmitter[S <: EventType, T <: BaseEventEmitter[S, T, R], R[_ <: S]
             }
         })
     }
-    protected def emit[K <: S](name: K, event: R[K]): Boolean = {
-        listeners.get(name) match {
-            case Some(x) => {
-                current += (() => run(name, x, event))
-                true
-            }
-            case None => false
+    protected def emit[K <: S](name: K, event: R[K]): Boolean = listeners.get(name) match {
+        case Some(x) => {
+            current += (() => run(name, x, event))
+            true
         }
+        case None => false
     }
-    protected def instant[K <: S](name: K, event: R[K]): Boolean = {
-        listeners.get(name) match {
-            case Some(x) => {
-                run(name, x, event)
-                true
-            }
-            case None => false
+    protected def instant[K <: S](name: K, event: R[K]): Boolean = listeners.get(name) match {
+        case Some(x) => {
+            run(name, x, event)
+            true
         }
+        case None => false
     }
 
-    protected def events(): TraversableOnce[eventloop.Event] = {
-        if(state != State.Open) return Array[eventloop.Event]()
+    protected def events(): TraversableOnce[eventloop.Event] = if(state != State.Open) Array[eventloop.Event]() else {
         poll()
         val arr = current.toArray
         current.clear
@@ -142,21 +131,22 @@ trait BaseEventEmitter[S <: EventType, T <: BaseEventEmitter[S, T, R], R[_ <: S]
     }
     protected def poll(): Unit = ()
     protected def closing(): Boolean = state == State.Closing
-    protected def close(): Unit = {
-        state match {
-            case State.Open => state = State.Closing
-            case State.Closing => {
-                executeClose()
-                state = State.Closed
-            }
-            case State.Closed => {
-                executeAlreadyClosed()
-            }
+    protected def close(): Unit = state match {
+        case State.Open => state = State.Closing
+        case State.Closing => {
+            executeClose()
+            state = State.Closed
         }
+        case State.Closed => executeAlreadyClosed()
+    }
+    protected def forceClose(): Unit = state match {
+        case State.Open | State.Closing => {
+            executeClose()
+            state = State.Closed
+        }
+        case State.Closed => executeAlreadyClosed()
     }
     protected def executeClose(): Unit
     protected def executeAlreadyClosed(): Unit = ()
-    protected def overMax(): Unit = {
-        throw new IndexOutOfBoundsException("Too many listeners")
-    }
+    protected def overMax(): Unit = throw new IndexOutOfBoundsException("Too many listeners")
 }

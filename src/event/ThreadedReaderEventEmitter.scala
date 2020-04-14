@@ -1,27 +1,27 @@
 /**
- * Implementation of [[DataEventEmitter]] that is specialized for input streams. This is a version that uses multiple threads because the normal edition breaks with some badly designed streams.
+ * Implementation of [[DataEventEmitter]] that is specialized for readers. This is a version that uses multiple threads because the normal edition breaks with some badly designed streams.
  *
  * @inheritdoc
  */
 
 package event
 
-import java.io.InputStream
+import java.io.Reader
 
 import scala.collection.mutable.Buffer
 
-class ThreadedStreamEventEmitter(stream: InputStream, chunkSize: Int = 4096, defaultMax: Int = 10)
+class ThreadedReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10)
         extends DataEventEmitter[Array[Byte]](defaultMax) {
     Runtime.getRuntime.addShutdownHook(Thread(forceClose _))
     new Thread(() => {
         while(!isExited) {
-            val read = stream.read()
+            val read = reader.read()
             if(read == -1) lastByteEof = true
             else buffer.synchronized {
                 buffer += read.asInstanceOf[Byte]
             }
         }
-        stream.close()
+        reader.close()
     }).start()
 
     private var buffer = Buffer[Byte]()
