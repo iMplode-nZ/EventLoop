@@ -10,12 +10,12 @@ import java.io.Reader
 
 import scala.collection.mutable.Buffer
 
-class ReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10)
+class ReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10, closeStream: Boolean = false)
         extends DataEventEmitter[Array[Char]](defaultMax) {
     private var buffer = Buffer[Char]()
     private var lastByteEof = false
     protected override def executeClose() = {
-        reader.close()
+        if(closeStream) reader.close()
         super.executeClose()
     }
 

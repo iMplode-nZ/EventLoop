@@ -67,7 +67,7 @@ class DefaultEventLoop(max: Long) extends EventLoop[TimeoutFunction, IntervalFun
             immediates.clear()
             //Close callbacks
             pollers --= pollers.filter((poller) => if(EventPoller.closing(poller)) {
-                    EventPoller.executeClose(poller)
+                    EventPoller.forceClose(poller)
                     true
                 } else false)
         }

@@ -10,7 +10,7 @@ import java.io.Reader
 
 import scala.collection.mutable.Buffer
 
-class ThreadedReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10)
+class ThreadedReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultMax: Int = 10, closeStream: Boolean = true)
         extends DataEventEmitter[Array[Byte]](defaultMax) {
     Runtime.getRuntime.addShutdownHook(Thread(forceClose _))
     new Thread(() => {
@@ -21,7 +21,7 @@ class ThreadedReaderEventEmitter(reader: Reader, chunkSize: Int = 4096, defaultM
                 buffer += read.asInstanceOf[Byte]
             }
         }
-        reader.close()
+        if(closeStream) reader.close()
     }).start()
 
     private var buffer = Buffer[Byte]()

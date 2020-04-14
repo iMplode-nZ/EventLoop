@@ -10,12 +10,12 @@ import java.io.InputStream
 
 import scala.collection.mutable.Buffer
 
-class StreamEventEmitter(stream: InputStream, chunkSize: Int = 4096, defaultMax: Int = 10)
+class StreamEventEmitter(stream: InputStream, chunkSize: Int = 4096, defaultMax: Int = 10, closeStream: Boolean = false)
         extends DataEventEmitter[Array[Byte]](defaultMax) {
     private var buffer = Buffer[Byte]()
     private var lastByteEof = false
     protected override def executeClose() = {
-        stream.close()
+        if(closeStream) stream.close()
         super.executeClose()
     }
 
